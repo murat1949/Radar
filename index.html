@@ -118,6 +118,24 @@
     gap: 6px;
     margin-bottom: 14px;
   }
+  .period-row{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .period-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+  }
+  .period-tabs{
+    display:flex;
+    gap: 6px;
+  }
   .tab{
     font-family:'IBM Plex Mono', monospace;
     font-size: 12px;
@@ -289,6 +307,16 @@
     </div>
   </div>
 
+  <div class="period-row">
+    <span class="period-label">Период:</span>
+    <div class="period-tabs">
+      <button class="tab active" data-period="all">Всё время</button>
+      <button class="tab" data-period="today">Сегодня</button>
+      <button class="tab" data-period="7d">7 дней</button>
+      <button class="tab" data-period="30d">30 дней</button>
+    </div>
+  </div>
+
   <div class="tabs">
     <button class="tab active" data-filter="все">Все</button>
     <button class="tab" data-filter="новая">Ждут ответа</button>
@@ -316,6 +344,16 @@ const SUPABASE_KEY = "sb_publishable_GEl1zhHAxT_i8zU2F86cOA_-G6n7uBH";
 
 let allLeads = [];
 let currentFilter = "все";
+let currentPeriod = "all";
+
+function periodStartDate(period){
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if(period === 'today') return start;
+  if(period === '7d') return new Date(start.getTime() - 6*86400000);
+  if(period === '30d') return new Date(start.getTime() - 29*86400000);
+  return null; // 'all'
+}
 
 function fmtClock(){
   const d = new Date();
@@ -378,8 +416,11 @@ async function markProcessed(id, btn){
 }
 
 function render(){
-  const total = allLeads.length;
-  const newOnes = allLeads.filter(l => l.status === 'новая');
+  const start = periodStartDate(currentPeriod);
+  const periodLeads = start ? allLeads.filter(l => new Date(l.created_at) >= start) : allLeads;
+
+  const total = periodLeads.length;
+  const newOnes = periodLeads.filter(l => l.status === 'новая');
 
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-new').textContent = newOnes.length;
@@ -396,7 +437,7 @@ function render(){
   }
 
   const rowsEl = document.getElementById('rows');
-  const filtered = currentFilter === 'все' ? allLeads : allLeads.filter(l => l.status === currentFilter);
+  const filtered = currentFilter === 'все' ? periodLeads : periodLeads.filter(l => l.status === currentFilter);
 
   if(filtered.length === 0){
     rowsEl.innerHTML = `<div class="empty">Заявок пока нет.</div>`;
@@ -445,11 +486,20 @@ function formatPhone(p){
   return p;
 }
 
-document.querySelectorAll('.tab').forEach(tab => {
+document.querySelectorAll('.tabs .tab').forEach(tab => {
   tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     currentFilter = tab.dataset.filter;
+    render();
+  });
+});
+
+document.querySelectorAll('.period-tabs .tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.period-tabs .tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentPeriod = tab.dataset.period;
     render();
   });
 });
