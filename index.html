@@ -142,7 +142,7 @@
   }
   .row{
     display:grid;
-    grid-template-columns: 20px 1fr 130px 110px 150px;
+    grid-template-columns: 20px 1fr 110px 130px 110px 150px;
     align-items:center;
     gap: 14px;
     padding: 14px 18px;
@@ -199,6 +199,27 @@
   }
   .badge.новая{ background: var(--urgent-dim); color: var(--urgent); }
   .badge.обработана{ background: var(--ok-dim); color: var(--ok); }
+  .source-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+  .source-badge .dot-ico{
+    width:7px;height:7px;border-radius:50%;
+    flex-shrink:0;
+  }
+  .source-badge.telegram{ background: rgba(51,144,236,0.14); color:#4fa8f0; }
+  .source-badge.telegram .dot-ico{ background:#4fa8f0; }
+  .source-badge.whatsapp{ background: rgba(70,224,161,0.14); color: var(--ok); }
+  .source-badge.whatsapp .dot-ico{ background: var(--ok); }
+  .source-badge.instagram{ background: rgba(214,88,159,0.16); color:#e37fb5; }
+  .source-badge.instagram .dot-ico{ background:#e37fb5; }
+  .source-badge.unknown{ background: rgba(137,147,164,0.14); color: var(--muted); }
+  .source-badge.unknown .dot-ico{ background: var(--muted); }
   .action-btn{
     font-family:'IBM Plex Sans', sans-serif;
     font-size: 12.5px;
@@ -230,8 +251,9 @@
   }
   @media (max-width: 640px){
     .board{ grid-template-columns: 1fr; }
-    .row{ grid-template-columns: 16px 1fr 90px; grid-template-areas: "dot phone status" "dot elapsed action"; }
+    .row{ grid-template-columns: 16px 1fr 90px; grid-template-areas: "dot phone status" "dot source status" "dot elapsed action"; }
     .row.head{ display:none; }
+    .row .source-cell{ grid-column: 2; }
     .row .elapsed{ grid-column: 2; }
     .row .badge{ grid-column: 3; }
     .row .action-btn{ grid-column: 2 / span 2; margin-top: 8px; width: 100%; }
@@ -277,6 +299,7 @@
     <div class="row head">
       <div></div>
       <div>Телефон / заявка</div>
+      <div>Источник</div>
       <div>Ждёт</div>
       <div>Статус</div>
       <div></div>
@@ -390,6 +413,7 @@ function render(){
           <span class="phone">${formatPhone(l.phone)}</span>
           <span class="req-type">${l.request_type || 'Заявка'}</span>
         </div>
+        <div class="source-cell">${sourceInfo(l.source)}</div>
         <div class="elapsed ${e.level}">${e.text}</div>
         <div><span class="badge ${l.status}">${l.status}</span></div>
         <div>
@@ -398,6 +422,18 @@ function render(){
       </div>
     `;
   }).join('');
+}
+
+function sourceInfo(src){
+  const s = (src || 'unknown').toLowerCase();
+  const map = {
+    telegram: 'Telegram',
+    whatsapp: 'WhatsApp',
+    instagram: 'Instagram',
+  };
+  const label = map[s] || 'Не указан';
+  const cls = map[s] ? s : 'unknown';
+  return `<span class="source-badge ${cls}"><span class="dot-ico"></span>${label}</span>`;
 }
 
 function formatPhone(p){
