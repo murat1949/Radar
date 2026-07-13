@@ -277,6 +277,69 @@
     color: var(--amber);
     white-space: nowrap;
   }
+  .lock-screen{
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index: 1000;
+    padding: 20px;
+  }
+  .lock-card{
+    width: 100%;
+    max-width: 340px;
+    text-align:center;
+  }
+  .lock-eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+    margin: 0 0 10px;
+  }
+  .lock-title{
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 24px;
+    color: var(--text);
+  }
+  .lock-input{
+    width: 100%;
+    box-sizing: border-box;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 18px;
+    letter-spacing: 4px;
+    text-align:center;
+    padding: 14px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+  .lock-input:focus{ outline:none; border-color: var(--ok); }
+  .lock-btn{
+    width: 100%;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: var(--ok);
+    color: #0b1210;
+    cursor:pointer;
+  }
+  .lock-error{
+    margin-top: 12px;
+    font-size: 12.5px;
+    color: var(--urgent);
+    min-height: 16px;
+  }
+  .content-hidden{ display:none; }
   .empty{
     padding: 48px 20px;
     text-align:center;
@@ -301,7 +364,18 @@
 </style>
 </head>
 <body>
-<div class="wrap">
+
+<div class="lock-screen" id="lockScreen">
+  <div class="lock-card">
+    <p class="lock-eyebrow">Радар · Дорожная карта</p>
+    <h2 class="lock-title">Введите пароль для входа</h2>
+    <input type="password" class="lock-input" id="lockInput" placeholder="••••" autofocus inputmode="numeric">
+    <button class="lock-btn" id="lockBtn">Войти</button>
+    <div class="lock-error" id="lockError"></div>
+  </div>
+</div>
+
+<div class="wrap content-hidden" id="mainContent">
 
   <header>
     <div>
@@ -586,9 +660,45 @@ document.querySelectorAll('.period-tabs .tab').forEach(tab => {
   });
 });
 
-fetchLeads();
-setInterval(fetchLeads, 20000);
-setInterval(render, 15000);
+const PASSWORD_HASH = '8901e5df06abf35b898199e4b78a8376b724832f2206616315f5115b03896378';
+
+async function sha256Hex(text){
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function startApp(){
+  document.getElementById('mainContent').classList.remove('content-hidden');
+  fetchLeads();
+  setInterval(fetchLeads, 20000);
+  setInterval(render, 15000);
+}
+
+async function tryUnlock(){
+  const input = document.getElementById('lockInput');
+  const errorEl = document.getElementById('lockError');
+  const hash = await sha256Hex(input.value.trim());
+  if(hash === PASSWORD_HASH){
+    sessionStorage.setItem('radar_unlocked', '1');
+    document.getElementById('lockScreen').style.display = 'none';
+    startApp();
+  } else {
+    errorEl.textContent = 'Неверный пароль, попробуйте ещё раз';
+    input.value = '';
+    input.focus();
+  }
+}
+
+document.getElementById('lockBtn').addEventListener('click', tryUnlock);
+document.getElementById('lockInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') tryUnlock();
+});
+
+if(sessionStorage.getItem('radar_unlocked') === '1'){
+  document.getElementById('lockScreen').style.display = 'none';
+  startApp();
+}
 </script>
 </body>
 </html>
