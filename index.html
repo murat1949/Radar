@@ -71,6 +71,26 @@
     box-shadow: 0 0 0 0 rgba(70,224,161,0.5);
     animation: livepulse 2s infinite;
   }
+  .header-right{
+    display:flex;
+    align-items:center;
+    gap: 16px;
+  }
+  .back-link{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .back-link:hover{
+    color: var(--text);
+    border-color: #3a4456;
+  }
   @keyframes livepulse{
     0%{ box-shadow: 0 0 0 0 rgba(70,224,161,0.45);}
     70%{ box-shadow: 0 0 0 7px rgba(70,224,161,0);}
@@ -389,7 +409,10 @@
       <p class="brand-eyebrow">Пульт заявок · Дорожная карта</p>
       <h1>Кто уже ждёт звонка</h1>
     </div>
-    <div class="live-clock"><span class="live-dot"></span><span id="clock">—</span></div>
+    <div class="header-right">
+      <button class="back-link" id="backToCoverBtn">← На обложку</button>
+      <div class="live-clock"><span class="live-dot"></span><span id="clock">—</span></div>
+    </div>
   </header>
 
   <div class="board">
@@ -698,6 +721,14 @@ async function tryUnlock(){
 }
 
 document.getElementById('lockBtn').addEventListener('click', tryUnlock);
+
+document.getElementById('backToCoverBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('radar_unlocked');
+  document.getElementById('mainContent').classList.add('content-hidden');
+  document.getElementById('lockScreen').style.display = 'flex';
+  document.getElementById('lockInput').value = '';
+  document.getElementById('lockError').textContent = '';
+});
 document.getElementById('lockInput').addEventListener('keydown', (e) => {
   if(e.key === 'Enter') tryUnlock();
 });
