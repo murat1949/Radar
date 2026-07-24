@@ -1,0 +1,26 @@
+{
+  "name": "MN Systems — Radar",
+  "short_name": "Radar",
+  "description": "Демо-панель перехвата заявок",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FBEFEF",
+  "theme_color": "#7A1F1F",
+  "lang": "ru",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
